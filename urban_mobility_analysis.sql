@@ -1,0 +1,387 @@
+-- 1.The rides table is previewed to verify that the imported records and columns are available for SQL analysis.
+select *
+from rides
+limit 5;
+-- SELECT retrieves data from a table.
+-- LIMIT 5 restricts the result to the first 5 rows.
+
+-- 2.The total number of ride bookings is calculated to establish the overall booking volume in the dataset.
+select count(*) As total_booking -- COUNT(*) counts the total number of rows in a table.
+from rides;
+/* 3. The distribution of booking statuses is analyzed to understand completed rides, 
+cancellations, incomplete rides, and rides where no driver was found.*/
+SELECT
+    `Booking Status`,
+    COUNT(*) AS total_bookings
+FROM rides
+GROUP BY `Booking Status` -- GROUP BY groups records with the same value.
+ORDER BY total_bookings DESC; /* ORDER BY is a clause in SQL used to sort the result set of a query in 
+ascending or descending order, based on one or more columns.*/
+
+/* 4. The completed ride rate is calculated to measure the percentage of 
+total bookings that resulted in completed rides.*/
+SELECT
+    COUNT(*) AS total_bookings,
+    SUM(CASE
+        WHEN `Booking Status` = 'Completed' THEN 1
+        ELSE 0
+    END) AS completed_rides,
+    ROUND(
+        SUM(CASE
+            WHEN `Booking Status` = 'Completed' THEN 1
+            ELSE 0
+        END) * 100.0 / COUNT(*),
+        2
+    ) AS completed_ride_rate
+FROM rides;
+/* CASE WHEN applies conditional logic to classify records, 
+while SUM counts records that meet the specified condition*/
+
+/* The total booking value is calculated to measure the 
+overall monetary value recorded for rides in the dataset.*/
+SELECT
+    SUM(`Booking Value`) AS total_booking_value
+FROM rides;
+/* The number of bookings is analyzed for each vehicle type to understand 
+the booking distribution across different vehicle categories.
+Q.How many bookings were made for each vehicle type? Display the vehicle type and total number of bookings, 
+and arrange the result from highest to lowest number of bookings.*/
+
+SELECT `Vehicle Type`, COUNT(*) AS total_bookings
+FROM rides
+GROUP BY `Vehicle Type`
+ORDER BY total_bookings DESC;
+
+/* Completed Rides by Vehicle Type
+
+The number of completed rides is analyzed for each vehicle type to compare 
+successful ride activity across vehicle categories.*/
+SELECT `Vehicle Type`,count(*) As complete_booking
+FROM rides
+WHERE `Booking Status`='Completed'
+GROUP BY `Vehicle Type`
+ORDER BY complete_booking DESC;
+/* Vehicle Type Completion Rate
+
+The completion rate is calculated for each vehicle type to compare the proportion 
+of bookings that were completed within each vehicle category.*/
+SELECT
+    `Vehicle Type`,
+    COUNT(*) AS total_bookings,
+    SUM(
+        CASE
+            WHEN `Booking Status` = 'Completed' THEN 1
+            ELSE 0
+        END
+    ) AS completed_bookings,
+    ROUND(
+        SUM(
+            CASE
+                WHEN `Booking Status` = 'Completed' THEN 1
+                ELSE 0
+            END
+        ) * 100.0 / COUNT(*),
+        2
+    ) AS completion_rate
+FROM rides
+GROUP BY `Vehicle Type`
+ORDER BY completion_rate DESC;
+
+/*What is the average booking value for each vehicle type?
+Display the vehicle type and average booking value, 
+sorted from the highest average booking value to the lowest.*/
+SELECT `Vehicle Type`,ROUND(AVG(`Booking Value`),2) AS avg_booking
+FROM rides
+GROUP BY `Vehicle Type`
+ORDER BY avg_booking DESC;
+
+/*What is the cancellation rate for each vehicle type?
+Display the vehicle type, total bookings, cancelled bookings, 
+and cancellation rate (%), sorted from the highest cancellation rate to the lowest.*/
+SELECT `Vehicle Type`,COUNT(*) AS total_booking,
+    SUM(CASE
+            WHEN `Booking Status` IN ('Cancelled by Driver', 'Cancelled by Customer')
+            THEN 1
+            ELSE 0
+        END
+    ) AS cancelled_booking,
+    ROUND(SUM(CASE
+                WHEN `Booking Status` IN ('Cancelled by Driver', 'Cancelled by Customer')
+                THEN 1
+                ELSE 0
+            END) * 100.0 / COUNT(*),2) AS cancellation_rate
+FROM rides
+GROUP BY `Vehicle Type`
+ORDER BY cancellation_rate DESC;
+/*For each vehicle type, 
+how many bookings were cancelled by customers 
+and how many were cancelled by drivers?
+Display the vehicle type, customer cancellations, 
+and driver cancellations, sorted by the total number
+ of cancellations from highest to lowest.*/
+ select `Vehicle Type`,COUNT(*) AS total_booking,
+ sum(case
+        when `Cancelled Rides by Customer` then 1
+        else 0 
+        end) As customer_cancellation,
+sum(case
+		when `Cancelled Rides by Driver` then 1
+		else 0
+		end) As driver_cancellation,
+SUM(
+        CASE
+            WHEN `Booking Status` IN ('Cancelled by Customer', 'Cancelled by Driver')
+            THEN 1
+            ELSE 0
+        END
+    ) AS total_cancellations
+
+FROM rides
+
+GROUP BY `Vehicle Type`
+
+ORDER BY total_cancellations DESC;
+/*What is the total booking value generated by each vehicle type?
+Display the vehicle type and total booking value, 
+sorted from the highest total booking value to the lowest.*/
+select `Vehicle Type`,sum(`Booking Value`) As total_booking
+from rides
+group by `Vehicle Type`
+order by total_booking desc;
+/*What is the average ride distance for each vehicle type?
+Display the vehicle type and average ride distance, 
+sorted from the highest average ride distance to the lowest.*/
+select `Vehicle Type`,round(avg(`Ride Distance`),2) As avg_distance
+from rides
+group by `Vehicle Type`
+order by avg_distance desc;
+/*What is the average driver rating for each vehicle type?
+Display the vehicle type and average driver rating, 
+sorted from the highest average rating to the lowest.*/
+select `Vehicle Type`, round(avg(`Driver Ratings`),2) As avg_driver_rating
+from rides
+group by `Vehicle Type`
+order by avg_driver_rating desc;
+/*What is the average customer rating for each vehicle type?
+Display the vehicle type and average customer rating, 
+sorted from the highest average rating to the lowest.*/
+select `Vehicle Type`, round(avg(`Customer Rating`),2) As avg_customer_rating
+from rides
+group by `Vehicle Type`
+order by avg_customer_rating desc;
+/*How many bookings were made using each payment method?
+Display the payment method and total number of bookings, 
+sorted from the highest number of bookings to the lowest.*/
+select `Payment Method`, count(*) as total_booking
+from rides
+group by `Payment Method`
+order by total_booking desc;
+/*Which are the top 10 pickup locations based on the number of bookings?
+Display the pickup location and total number of bookings, 
+sorted from the highest to the lowest.*/
+select `Pickup Location`,count(*) As total_booking
+from rides
+group by `Pickup Location`
+order by  total_booking desc
+limit 10;
+/*Which are the top 10 drop locations based on the number of bookings?
+Display the drop location and total number of bookings, 
+sorted from the highest to the lowest.*/
+select `Drop Location`,count(*) As total_booking
+from rides
+group by `Drop Location`
+order by  total_booking desc
+limit 10;
+/*How many bookings were made in each month of 2024?
+Display the month and total number of bookings, 
+sorted in chronological order from January to December.*/
+SELECT
+    MONTH(`Date`) AS booking_month,
+    COUNT(*) AS total_bookings
+FROM rides
+GROUP BY MONTH(`Date`)
+ORDER BY booking_month;
+/*How much total booking value was recorded in each month of 2024?
+ Display the month and total booking value, 
+sorted chronologically from January to December.*/
+select MONTH(`Date`)AS booking_month,sum(`Booking Value`) total_booking_value
+from rides
+group by MONTH(`Date`)
+order by booking_month;
+/*At which hours of the day were bookings made, 
+and how many bookings occurred in each hour? Display the booking hour and total bookings, 
+sorted chronologically from 0 to 23.*/
+select hour(`Time`) As booking_hour,count(*) As total_booking
+from rides
+group by hour(`Time`)
+order by booking_hour;
+/*How many bookings were made on weekdays and weekends? 
+Display the day type and total bookings, sorted from highest to lowest.*/
+
+SELECT
+    CASE
+        WHEN DAYOFWEEK(`Date`) IN (1, 7) THEN 'Weekend'
+        ELSE 'Weekday'
+    END AS day_type,
+    COUNT(*) AS total_bookings
+FROM rides
+GROUP BY day_type
+ORDER BY total_bookings DESC;
+/*Among completed rides, how many bookings were made using each payment method? 
+Display the payment method and total completed bookings, sorted from highest to lowest.*/
+select `Payment Method`, count(*) As complete_booking
+from rides
+where `Booking Status`='Completed'
+group by `Payment Method`
+order by complete_booking desc;
+/*What are the most common reasons given by customers for cancelling rides? 
+Display the cancellation reason and total number of customer cancellations, 
+sorted from highest to lowest.*/
+select `Reason for cancelling by Customer`, count(*) as total_customer_cancellations
+from rides
+where `Booking Status` = 'Cancelled by Customer'
+group by `Reason for cancelling by Customer`
+order by total_customer_cancellations desc;
+/*What are the most common reasons given by drivers for cancelling rides? 
+Display the cancellation reason and total number of driver cancellations, 
+sorted from highest to lowest.*/
+select `Driver Cancellation Reason`, count(*) As total_Driver_cancellations
+from rides
+where `Booking Status`='Cancelled by Driver'
+group by `Driver Cancellation Reason`
+order by total_Driver_cancellations desc;
+/*What are the most common reasons for incomplete rides? 
+Display the incomplete ride reason and total number of incomplete rides, 
+sorted from highest to lowest.*/
+select `Incomplete Rides Reason`, count(*) As total_incomplete_rides
+from rides
+where `Booking Status`='Incomplete'
+group by `Incomplete Rides Reason`
+order by total_incomplete_rides desc;
+/*What are the average VTAT and CTAT for each vehicle type? 
+Display the vehicle type, average VTAT, 
+and average CTAT, sorted by average VTAT from highest to lowest.*/
+SELECT
+    `Vehicle Type`,
+    ROUND(AVG(`Avg VTAT`), 2) AS average_VTAT,
+    ROUND(AVG(`Avg CTAT`), 2) AS average_CTAT
+FROM rides
+GROUP BY `Vehicle Type`
+ORDER BY average_VTAT DESC;
+/*Which are the top 10 most frequently used pickup-to-drop routes? 
+Display the pickup location, 
+drop location, and total bookings, sorted from highest to lowest.*/
+select `Pickup Location`,`Drop Location`,count(*) As total_booking
+from rides
+group by `Pickup Location`,`Drop Location`
+order by total_booking desc
+limit 10;
+/*What is the total booking value recorded on weekdays versus weekends? 
+Display the day type and total booking value, 
+sorted from highest to lowest.*/
+select case when
+               dayofweek(`Date`) in (1,7) then 'weekend' else 'weekday'
+               end as day_type, sum(`Booking Value`) As total_booking_value
+from rides
+group by day_type
+order by total_booking_value desc;
+/*What is the average ride distance for each booking status? 
+Display the booking status and average ride distance, 
+sorted from highest to lowest.*/
+select `Booking Status`, round(avg(`Ride Distance`),2) As average_ride_distance
+from rides 
+group by `Booking Status`
+order by average_ride_distance desc;
+/*What is the average booking value for each booking status? 
+Display the booking status and average booking value, 
+sorted from highest to lowest.*/
+select `Booking Status`, round(avg(`Booking Value`),2) As average_booking_value
+from rides
+group by `Booking Status`
+order by average_booking_value desc;
+/*What is the average customer rating for each booking status? 
+Display the booking status and average customer rating, 
+sorted from highest to lowest.*/
+select `Booking Status`, round(avg(`Customer Rating`),2) as average_customer_rating
+from rides
+group by `Booking Status`
+order by average_customer_rating desc;
+/*For each booking status, how many bookings were made using each payment method? 
+Display the booking status, payment method, and total bookings, 
+sorted by booking status and then highest booking count first.*/
+select `Booking Status`, `Payment Method`, count(*) as total_booking
+from rides
+group by `Booking Status`,`Payment Method`
+order by  total_booking desc;
+/*Which are the top 10 pickup locations based on completed rides? 
+Display the pickup location and total completed rides, 
+sorted from highest to lowest.*/
+select `Pickup Location`,count(*) As total_complete_rides
+from rides
+where `Booking Status`='Completed'
+group by `Pickup Location`
+order by total_complete_rides desc
+limit 10;
+/*What was the cancellation rate for each month of 2024? 
+Display the month, total bookings, cancelled bookings, and cancellation rate (%), 
+sorted chronologically from January to December.*/
+select month(`Date`)as booking_month,count(*) As total_booking,
+ sum(case when `Booking Status`in ('Cancelled by Driver','Cancelled by Customer') then 1 
+ else 0 end) As cancelled_booking,
+ round(sum(case when `Booking Status`in ('Cancelled by Driver','Cancelled by Customer') then 1 
+ else 0 end)*100.0/count(*),2) AS cancellation_rate_pct
+from rides
+group by month(`Date`)
+order by booking_month ;
+/*What is the average ride distance for completed rides in each vehicle type?
+ Display the vehicle type and average ride distance, 
+sorted from highest to lowest.*/
+select `Vehicle Type`, round(avg(`Ride Distance`),2) As verage_ride_distance
+from rides
+WHERE `Booking Status` = 'Completed'
+group by `Vehicle Type`
+order by verage_ride_distance desc;
+/*Which are the top 10 most frequently used pickup-to-drop routes among completed rides? 
+Display the pickup location, drop location, 
+and total completed rides, sorted from highest to lowest.*/
+select `Pickup Location`,`Drop Location`,count(*) as total_complete_booking
+from rides 
+where `Booking Status` = 'Completed'
+group by `Pickup Location`,`Drop Location`
+order by total_complete_booking desc
+limit 10;
+/*How many completed rides were recorded in each month of 2024? 
+Display the month and total completed rides, 
+sorted chronologically from January to December.*/
+select month(`Date`) As booking_month,count(*) AS total_complete_ride
+from rides
+where `Booking Status` = 'Completed'
+group by month(`Date`)
+order by booking_month;
+/*What are the key overall performance metrics of the ride-hailing dataset? Calculate total bookings, 
+completed rides, cancelled rides, total booking value, and average ride distance.*/
+SELECT
+    COUNT(*) AS total_bookings,
+
+    SUM(
+        CASE
+            WHEN `Booking Status` = 'Completed'
+            THEN 1
+            ELSE 0
+        END
+    ) AS completed_rides,
+
+    SUM(
+        CASE
+            WHEN `Booking Status` IN ('Cancelled by Driver', 'Cancelled by Customer')
+            THEN 1
+            ELSE 0
+        END
+    ) AS cancelled_rides,
+
+    ROUND(SUM(`Booking Value`), 2) AS total_booking_value,
+
+    ROUND(AVG(`Ride Distance`), 2) AS average_ride_distance
+
+FROM rides;
+
